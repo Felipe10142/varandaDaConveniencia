@@ -19,12 +19,15 @@ const Ribbons: React.FC<RibbonsProps> = ({
   useEffect(() => {
     // No WebGL implementation needed - we'll use CSS gradients instead
   }, [colors, baseThickness, speedMultiplier, maxAge, enableFade, enableShaderEffect]);
-  return <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={{
+  return <div ref={containerRef} className="relative w-full h-full overflow-hidden ribbons-container" style={{
     background: `linear-gradient(125deg, ${colors.join(', ')})`,
     backgroundSize: '400% 400%',
-    animation: 'gradientAnimation 15s ease infinite'
   }}>
-      <style jsx>{`
+      <style>
+        {`
+        .ribbons-container {
+          animation: gradientAnimation 15s ease infinite;
+        }
         @keyframes gradientAnimation {
           0% {
             background-position: 0% 50%;

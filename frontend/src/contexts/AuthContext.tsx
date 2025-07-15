@@ -40,22 +40,26 @@ export const AuthProvider: React.FC<{
     setLoading(true);
     setError(null);
     try {
-      // Simulate API call
-      // In a real app, this would be a fetch to your backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // For demo purposes, accept any email with admin@example.com as admin
-      const mockUser: User = {
-        id: '1',
-        name: email.split('@')[0],
-        email,
-        isAdmin: email.includes('admin@')
+      const res = await fetch('http://localhost:5000/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || data?.error || 'Falha no login. Verifique suas credenciais.');
+      const userData = {
+        id: data.data._id,
+        name: data.data.name,
+        email: data.data.email,
+        isAdmin: data.data.role === 'admin',
+        token: data.data.token
       };
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
       setLoading(false);
       return true;
-    } catch (e) {
-      setError('Falha no login. Verifique suas credenciais.');
+    } catch (e: any) {
+      setError(e.message || 'Falha no login. Verifique suas credenciais.');
       setLoading(false);
       return false;
     }
@@ -64,20 +68,26 @@ export const AuthProvider: React.FC<{
     setLoading(true);
     setError(null);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const mockUser: User = {
-        id: '1',
-        name,
-        email,
-        isAdmin: false
+      const res = await fetch('http://localhost:5000/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || data?.error || 'Falha no registro. Tente novamente.');
+      const userData = {
+        id: data.data._id,
+        name: data.data.name,
+        email: data.data.email,
+        isAdmin: data.data.role === 'admin',
+        token: data.data.token
       };
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
       setLoading(false);
       return true;
-    } catch (e) {
-      setError('Falha no registro. Tente novamente.');
+    } catch (e: any) {
+      setError(e.message || 'Falha no registro. Tente novamente.');
       setLoading(false);
       return false;
     }

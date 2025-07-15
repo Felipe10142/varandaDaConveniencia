@@ -1,26 +1,31 @@
-import express, { Express } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import morgan from 'morgan';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cookieParser from 'cookie-parser';
-import compression from 'compression';
-import mongoSanitize from 'express-mongo-sanitize';
-import xss from 'xss-clean';
-import path from 'path';
+import { config } from './src/config/config';
+import { connectDatabase } from './src/config/database';
+import {
+  limiter,
+  corsOptions,
+  securityHeaders,
+  sanitizeData,
+  preventXSS,
+  preventParamPollution,
+  compressResponse
+} from './src/middleware/securityMiddleware';
 
 // Importar configuración y middleware
-import { connectDB } from './config/database';
-import { globalErrorHandler } from './utils/appError';
+import AppError from './src/utils/appError';
+import { globalErrorHandler } from './src/utils/appError';
 
 // Importar rutas
-import userRoutes from './routes/userRoutes';
-import productRoutes from './routes/productRoutes';
-import orderRoutes from './routes/orderRoutes';
-import reviewRoutes from './routes/reviewRoutes';
+import userRoutes from './src/routes/userRoutes';
+import productRoutes from './src/routes/productRoutes';
+import orderRoutes from './src/routes/orderRoutes';
+import reviewRoutes from './src/routes/reviewRoutes';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -37,40 +42,21 @@ const io = new Server(httpServer, {
   }
 });
 
-// Middleware de seguridad
-app.use(helmet());
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  credentials: true
-}));
-
-// Limitar solicitudes desde la misma IP
-const limiter = rateLimit({
-  max: 100, // máximo 100 solicitudes
-  windowMs: 60 * 60 * 1000, // 1 hora
-  message: 'Demasiadas solicitudes desde esta IP, por favor intente de nuevo en una hora'
-});
+// Middleware de seguridad y utilidades
+app.use(cors(corsOptions));
+app.use(securityHeaders);
+app.use(sanitizeData);
+app.use(preventXSS);
+app.use(preventParamPollution);
+app.use(compressResponse);
 app.use('/api', limiter);
-
-// Body parser
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
-
-// Sanitización de datos
-app.use(mongoSanitize());
-app.use(xss());
-
-// Logging en desarrollo
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
-
-// Compresión de respuestas
-app.use(compression());
-
-// Servir archivos estáticos
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('uploads'));
 
 // Rutas API
 app.use('/api/users', userRoutes);
@@ -108,7 +94,7 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    await connectDB();
+    await connectDatabase();
     httpServer.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en modo ${process.env.NODE_ENV} en puerto ${PORT}`);
     });
