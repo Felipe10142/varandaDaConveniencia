@@ -1,5 +1,5 @@
-import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryResponse } from '../types/cloudinary';
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryResponse } from "../types/cloudinary";
 
 // Configurar cloudinary
 cloudinary.config({
@@ -11,15 +11,17 @@ cloudinary.config({
 // Subir archivo a cloudinary
 export const uploadToCloudinary = async (
   file: string | Buffer,
-  folder: string = 'varanda'
+  folder: string = "varanda",
 ): Promise<CloudinaryResponse> => {
   try {
     const result = await cloudinary.uploader.upload(
-      typeof file === 'string' ? file : `data:image/jpeg;base64,${file.toString('base64')}`,
+      typeof file === "string"
+        ? file
+        : `data:image/jpeg;base64,${file.toString("base64")}`,
       {
         folder,
-        resource_type: 'auto',
-      }
+        resource_type: "auto",
+      },
     );
 
     return {
@@ -36,12 +38,16 @@ export const uploadToCloudinary = async (
 };
 
 // Eliminar archivo de cloudinary
-export const deleteFromCloudinary = async (publicId: string): Promise<boolean> => {
+export const deleteFromCloudinary = async (
+  publicId: string,
+): Promise<boolean> => {
   try {
     await cloudinary.uploader.destroy(publicId);
     return true;
   } catch (error: any) {
-    throw new Error(`Error al eliminar archivo de Cloudinary: ${error.message}`);
+    throw new Error(
+      `Error al eliminar archivo de Cloudinary: ${error.message}`,
+    );
   }
 };
 
@@ -51,7 +57,7 @@ export const getSignedUrl = async (
   options: {
     expires?: number;
     transformation?: any;
-  } = {}
+  } = {},
 ): Promise<string> => {
   const { expires = 3600, transformation = {} } = options;
 
@@ -83,7 +89,9 @@ export const deleteFolder = async (folderPath: string): Promise<void> => {
   try {
     await cloudinary.api.delete_folder(folderPath);
   } catch (error: any) {
-    throw new Error(`Error al eliminar carpeta de Cloudinary: ${error.message}`);
+    throw new Error(
+      `Error al eliminar carpeta de Cloudinary: ${error.message}`,
+    );
   }
 };
 
@@ -95,13 +103,13 @@ export const listResources = async (
     type?: string;
     prefix?: string;
     maxResults?: number;
-  } = {}
+  } = {},
 ) => {
   try {
     const result = await cloudinary.api.resources({
-      type: options.type || 'upload',
-      prefix: `${folderPath}${options.prefix || ''}`,
-      resource_type: options.resourceType || 'image',
+      type: options.type || "upload",
+      prefix: `${folderPath}${options.prefix || ""}`,
+      resource_type: options.resourceType || "image",
       max_results: options.maxResults || 10,
     });
 

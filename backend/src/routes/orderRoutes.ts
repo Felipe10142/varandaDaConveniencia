@@ -1,5 +1,5 @@
-import express from 'express';
-import { protect, restrictTo } from '../middleware/authMiddleware';
+import express from "express";
+import { protect, restrictTo } from "../middleware/authMiddleware";
 import {
   createOrder,
   getOrder,
@@ -9,28 +9,32 @@ import {
   getAllOrders,
   deleteOrder,
   createCheckoutSession,
-  webhookHandler
-} from '../controllers/orderController';
+  webhookHandler,
+} from "../controllers/orderController";
 
 const router = express.Router();
 
 // Rutas protegidas para usuarios autenticados
 router.use(protect);
 
-router.post('/', createOrder);
-router.get('/myorders', getMyOrders);
-router.get('/:id', getOrder);
-router.post('/create-checkout-session', createCheckoutSession);
+router.post("/", createOrder);
+router.get("/myorders", getMyOrders);
+router.get("/:id", getOrder);
+router.post("/create-checkout-session", createCheckoutSession);
 
 // Ruta para el webhook de Stripe (no necesita autenticación)
-router.post('/webhook', express.raw({type: 'application/json'}), webhookHandler);
+router.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  webhookHandler,
+);
 
 // Rutas protegidas para administradores
-router.use(restrictTo('admin'));
+router.use(restrictTo("admin"));
 
-router.get('/', getAllOrders);
-router.put('/:id/pay', updateOrderToPaid);
-router.put('/:id/deliver', updateOrderToDelivered);
-router.delete('/:id', deleteOrder);
+router.get("/", getAllOrders);
+router.put("/:id/pay", updateOrderToPaid);
+router.put("/:id/deliver", updateOrderToDelivered);
+router.delete("/:id", deleteOrder);
 
 export default router;

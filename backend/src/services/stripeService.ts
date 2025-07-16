@@ -1,12 +1,15 @@
-import Stripe from 'stripe';
+import Stripe from "stripe";
 
 // Initialize Stripe client
 const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-08-16',
+  apiVersion: "2023-08-16",
 });
 
 // Payment Intents
-export const createPaymentIntent = async (amount: number, currency: string = 'brl') => {
+export const createPaymentIntent = async (
+  amount: number,
+  currency: string = "brl",
+) => {
   try {
     const paymentIntent = await stripeClient.paymentIntents.create({
       amount: Math.round(amount * 100), // Stripe works in cents
@@ -21,7 +24,8 @@ export const createPaymentIntent = async (amount: number, currency: string = 'br
 
 export const retrievePaymentIntent = async (paymentIntentId: string) => {
   try {
-    const paymentIntent = await stripeClient.paymentIntents.retrieve(paymentIntentId);
+    const paymentIntent =
+      await stripeClient.paymentIntents.retrieve(paymentIntentId);
     return paymentIntent;
   } catch (error: any) {
     throw new Error(`Error retrieving payment intent: ${error.message}`);
@@ -43,7 +47,10 @@ export const createCustomer = async (email: string, source?: string) => {
 };
 
 // Refunds
-export const createRefund = async (paymentIntentId: string, amount?: number) => {
+export const createRefund = async (
+  paymentIntentId: string,
+  amount?: number,
+) => {
   try {
     const refund = await stripeClient.refunds.create({
       payment_intent: paymentIntentId,
@@ -60,7 +67,7 @@ export const createRefund = async (paymentIntentId: string, amount?: number) => 
 export const createSubscription = async (
   customerId: string,
   priceId: string,
-  options: Omit<Stripe.SubscriptionCreateParams, 'customer' | 'items'> = {}
+  options: Omit<Stripe.SubscriptionCreateParams, "customer" | "items"> = {},
 ) => {
   try {
     const subscription = await stripeClient.subscriptions.create({
@@ -77,7 +84,8 @@ export const createSubscription = async (
 
 export const cancelSubscription = async (subscriptionId: string) => {
   try {
-    const subscription = await stripeClient.subscriptions.cancel(subscriptionId);
+    const subscription =
+      await stripeClient.subscriptions.cancel(subscriptionId);
     return subscription;
   } catch (error: any) {
     throw new Error(`Error canceling subscription: ${error.message}`);
@@ -87,7 +95,7 @@ export const cancelSubscription = async (subscriptionId: string) => {
 // Products
 export const createProduct = async (
   name: string,
-  options: Omit<Stripe.ProductCreateParams, 'name'> = {}
+  options: Omit<Stripe.ProductCreateParams, "name"> = {},
 ) => {
   try {
     const product = await stripeClient.products.create({
@@ -105,8 +113,11 @@ export const createProduct = async (
 export const createPrice = async (
   productId: string,
   unitAmount: number,
-  currency: string = 'brl',
-  options: Omit<Stripe.PriceCreateParams, 'product' | 'unit_amount' | 'currency'> = {}
+  currency: string = "brl",
+  options: Omit<
+    Stripe.PriceCreateParams,
+    "product" | "unit_amount" | "currency"
+  > = {},
 ) => {
   try {
     const price = await stripeClient.prices.create({
@@ -125,13 +136,15 @@ export const createPrice = async (
 // Checkout Sessions
 export const createCheckoutSession = async (
   lineItems: Array<Stripe.Checkout.SessionCreateParams.LineItem>,
-  options: Partial<Omit<Stripe.Checkout.SessionCreateParams, 'line_items'>> = {}
+  options: Partial<
+    Omit<Stripe.Checkout.SessionCreateParams, "line_items">
+  > = {},
 ) => {
   try {
     const session = await stripeClient.checkout.sessions.create({
-      payment_method_types: ['card'],
+      payment_method_types: ["card"],
       line_items: lineItems,
-      mode: 'payment',
+      mode: "payment",
       success_url: `${process.env.FRONTEND_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONTEND_URL}/cart`,
       ...options,
@@ -147,13 +160,13 @@ export const createCheckoutSession = async (
 export const createWebhookEvent = (
   payload: string | Buffer,
   signature: string,
-  webhookSecret: string
+  webhookSecret: string,
 ): Stripe.Event => {
   try {
     return stripeClient.webhooks.constructEvent(
       payload,
       signature,
-      webhookSecret
+      webhookSecret,
     );
   } catch (error: any) {
     throw new Error(`Webhook error: ${error.message}`);

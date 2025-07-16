@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, createElement } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React, { useEffect, useRef, createElement } from "react";
+import type { ReactNode } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollTrigger);
 export interface SplitTextProps {
   text: string;
@@ -8,53 +9,53 @@ export interface SplitTextProps {
   delay?: number;
   duration?: number;
   ease?: string | ((t: number) => number);
-  splitType?: 'chars' | 'words' | 'lines' | 'words, chars';
+  splitType?: "chars" | "words" | "lines" | "words, chars";
   from?: gsap.TweenVars;
   to?: gsap.TweenVars;
   threshold?: number;
   rootMargin?: string;
-  textAlign?: React.CSSProperties['textAlign'];
+  textAlign?: React.CSSProperties["textAlign"];
   onLetterAnimationComplete?: () => void;
 }
 const SplitText: React.FC<SplitTextProps> = ({
   text,
-  className = '',
+  className = "",
   delay = 100,
   duration = 0.6,
-  ease = 'power3.out',
-  splitType = 'chars',
+  ease = "power3.out",
+  splitType = "chars",
   from = {
     opacity: 0,
-    y: 40
+    y: 40,
   },
   to = {
     opacity: 1,
-    y: 0
+    y: 0,
   },
   threshold = 0.1,
-  rootMargin = '-100px',
-  textAlign = 'center',
-  onLetterAnimationComplete
+  rootMargin = "-100px",
+  textAlign = "center",
+  onLetterAnimationComplete,
 }) => {
   const ref = useRef<HTMLParagraphElement>(null);
   const animationCompletedRef = useRef(false);
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
   useEffect(() => {
-    if (typeof window === 'undefined' || !ref.current || !text) return;
+    if (typeof window === "undefined" || !ref.current || !text) return;
     const el = ref.current;
     animationCompletedRef.current = false;
     // Split text into individual elements
-    const chars = text.split('');
+    const chars = text.split("");
     const elements: HTMLSpanElement[] = [];
     // Clear the container
-    el.innerHTML = '';
+    el.innerHTML = "";
     // Create spans for each character
-    chars.forEach(char => {
-      const span = document.createElement('span');
-      span.className = 'char';
+    chars.forEach((char) => {
+      const span = document.createElement("span");
+      span.className = "char";
       span.textContent = char;
-      span.style.willChange = 'transform, opacity';
-      span.style.display = 'inline-block';
+      span.style.willChange = "transform, opacity";
+      span.style.display = "inline-block";
       el.appendChild(span);
       elements.push(span);
     });
@@ -63,28 +64,28 @@ const SplitText: React.FC<SplitTextProps> = ({
       scrollTrigger: {
         trigger: el,
         start: `top ${(1 - threshold) * 100}%${rootMargin}`,
-        toggleActions: 'play none none none',
+        toggleActions: "play none none none",
         once: true,
-        onToggle: self => {
+        onToggle: (self) => {
           scrollTriggerRef.current = self;
-        }
+        },
       },
       smoothChildTiming: true,
       onComplete: () => {
         animationCompletedRef.current = true;
         gsap.set(elements, {
           ...to,
-          clearProps: 'willChange',
-          immediateRender: true
+          clearProps: "willChange",
+          immediateRender: true,
         });
         onLetterAnimationComplete?.();
-      }
+      },
     });
     // Set initial state
     tl.set(elements, {
       ...from,
       immediateRender: false,
-      force3D: true
+      force3D: true,
     });
     // Animate each character
     tl.to(elements, {
@@ -92,7 +93,7 @@ const SplitText: React.FC<SplitTextProps> = ({
       duration,
       ease,
       stagger: delay / 1000,
-      force3D: true
+      force3D: true,
     });
     return () => {
       tl.kill();
@@ -102,12 +103,29 @@ const SplitText: React.FC<SplitTextProps> = ({
       }
       gsap.killTweensOf(elements);
     };
-  }, [text, delay, duration, ease, splitType, from, to, threshold, rootMargin, onLetterAnimationComplete]);
-  return <p ref={ref} className={`split-parent overflow-hidden inline-block whitespace-normal ${className}`} style={{
-    textAlign,
-    wordWrap: 'break-word'
-  }}>
+  }, [
+    text,
+    delay,
+    duration,
+    ease,
+    splitType,
+    from,
+    to,
+    threshold,
+    rootMargin,
+    onLetterAnimationComplete,
+  ]);
+  return (
+    <p
+      ref={ref}
+      className={`split-parent overflow-hidden inline-block whitespace-normal ${className}`}
+      style={{
+        textAlign,
+        wordWrap: "break-word",
+      }}
+    >
       {text}
-    </p>;
+    </p>
+  );
 };
 export default SplitText;

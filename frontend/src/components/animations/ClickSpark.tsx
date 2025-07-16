@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from "react";
 interface ClickSparkProps {
   sparkColor?: string;
   sparkSize?: number;
   sparkRadius?: number;
   sparkCount?: number;
   duration?: number;
-  easing?: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
+  easing?: "linear" | "ease-in" | "ease-out" | "ease-in-out";
   extraScale?: number;
   children?: React.ReactNode;
 }
@@ -16,14 +16,14 @@ interface Spark {
   startTime: number;
 }
 const ClickSpark: React.FC<ClickSparkProps> = ({
-  sparkColor = '#fff',
+  sparkColor = "#fff",
   sparkSize = 10,
   sparkRadius = 15,
   sparkCount = 8,
   duration = 400,
-  easing = 'ease-out',
+  easing = "ease-out",
   extraScale = 1.0,
-  children
+  children,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sparksRef = useRef<Spark[]>([]);
@@ -35,10 +35,7 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     if (!parent) return;
     let resizeTimeout: NodeJS.Timeout;
     const resizeCanvas = () => {
-      const {
-        width,
-        height
-      } = parent.getBoundingClientRect();
+      const { width, height } = parent.getBoundingClientRect();
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
@@ -56,22 +53,25 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
       clearTimeout(resizeTimeout);
     };
   }, []);
-  const easeFunc = useCallback((t: number) => {
-    switch (easing) {
-      case 'linear':
-        return t;
-      case 'ease-in':
-        return t * t;
-      case 'ease-in-out':
-        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-      default:
-        return t * (2 - t);
-    }
-  }, [easing]);
+  const easeFunc = useCallback(
+    (t: number) => {
+      switch (easing) {
+        case "linear":
+          return t;
+        case "ease-in":
+          return t * t;
+        case "ease-in-out":
+          return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        default:
+          return t * (2 - t);
+      }
+    },
+    [easing],
+  );
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
     let animationId: number;
     const draw = (timestamp: number) => {
@@ -106,7 +106,15 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     return () => {
       cancelAnimationFrame(animationId);
     };
-  }, [sparkColor, sparkSize, sparkRadius, sparkCount, duration, easeFunc, extraScale]);
+  }, [
+    sparkColor,
+    sparkSize,
+    sparkRadius,
+    sparkCount,
+    duration,
+    easeFunc,
+    extraScale,
+  ]);
   const handleClick = (e: React.MouseEvent<HTMLDivElement>): void => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -114,19 +122,27 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const now = performance.now();
-    const newSparks: Spark[] = Array.from({
-      length: sparkCount
-    }, (_, i) => ({
-      x,
-      y,
-      angle: 2 * Math.PI * i / sparkCount,
-      startTime: now
-    }));
+    const newSparks: Spark[] = Array.from(
+      {
+        length: sparkCount,
+      },
+      (_, i) => ({
+        x,
+        y,
+        angle: (2 * Math.PI * i) / sparkCount,
+        startTime: now,
+      }),
+    );
     sparksRef.current.push(...newSparks);
   };
-  return <div className="relative w-full h-full" onClick={handleClick}>
-      <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
+  return (
+    <div className="relative w-full h-full" onClick={handleClick}>
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 pointer-events-none"
+      />
       {children}
-    </div>;
+    </div>
+  );
 };
 export default ClickSpark;

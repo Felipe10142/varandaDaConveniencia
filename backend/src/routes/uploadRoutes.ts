@@ -1,46 +1,46 @@
-import express from 'express';
-import { uploadSingle, uploadArray } from '../middleware/uploadMiddleware';
-import { protect } from '../middleware/authMiddleware';
+import express from "express";
+import { uploadSingle, uploadArray } from "../middleware/uploadMiddleware";
+import { protect } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
 // Upload single image
-router.post('/image', protect, uploadSingle('image'), async (req, res) => {
+router.post("/image", protect, uploadSingle("image"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: 'Please upload a file' });
+      return res.status(400).json({ message: "Please upload a file" });
     }
 
     res.status(200).json({
       success: true,
-      data: req.file.path
+      data: req.file.path,
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 });
 
 // Upload multiple images
-router.post('/images', protect, uploadArray('images', 5), async (req, res) => {
+router.post("/images", protect, uploadArray("images", 5), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ message: 'Please upload files' });
+      return res.status(400).json({ message: "Please upload files" });
     }
 
     const files = Array.isArray(req.files) ? req.files : [req.files];
-    const paths = files.map(file => file.path);
+    const paths = files.map((file) => file.path);
 
     res.status(200).json({
       success: true,
-      data: paths
+      data: paths,
     });
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 });

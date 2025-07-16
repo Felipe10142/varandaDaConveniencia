@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IOrder extends Document {
   user: mongoose.Types.ObjectId;
@@ -14,7 +14,7 @@ export interface IOrder extends Document {
     state: string;
     zipCode: string;
   };
-  paymentMethod: 'card' | 'cash' | 'pix';
+  paymentMethod: "card" | "cash" | "pix";
   paymentResult?: {
     id: string;
     status: string;
@@ -29,118 +29,123 @@ export interface IOrder extends Document {
   paidAt?: Date;
   isDelivered: boolean;
   deliveredAt?: Date;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  status: "pending" | "processing" | "completed" | "cancelled";
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const orderSchema = new Schema<IOrder>({
-  user: {
-    type: Schema.Types.ObjectId,
-    required: true,
-    ref: 'User'
-  },
-  items: [{
-    product: {
+const orderSchema = new Schema<IOrder>(
+  {
+    user: {
       type: Schema.Types.ObjectId,
       required: true,
-      ref: 'Product'
+      ref: "User",
     },
-    quantity: {
+    items: [
+      {
+        product: {
+          type: Schema.Types.ObjectId,
+          required: true,
+          ref: "Product",
+        },
+        quantity: {
+          type: Number,
+          required: true,
+          min: [1, "La cantidad mínima es 1"],
+        },
+        price: {
+          type: Number,
+          required: true,
+          min: [0, "El precio no puede ser negativo"],
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
+    shippingAddress: {
+      street: {
+        type: String,
+        required: [true, "La dirección es requerida"],
+      },
+      city: {
+        type: String,
+        required: [true, "La ciudad es requerida"],
+      },
+      state: {
+        type: String,
+        required: [true, "El estado es requerido"],
+      },
+      zipCode: {
+        type: String,
+        required: [true, "El código postal es requerido"],
+      },
+    },
+    paymentMethod: {
+      type: String,
+      required: [true, "El método de pago es requerido"],
+      enum: ["card", "cash", "pix"],
+    },
+    paymentResult: {
+      id: String,
+      status: String,
+      updateTime: String,
+      email: String,
+    },
+    itemsPrice: {
       type: Number,
       required: true,
-      min: [1, 'La cantidad mínima es 1']
+      min: [0, "El precio de los items no puede ser negativo"],
     },
-    price: {
+    taxPrice: {
       type: Number,
       required: true,
-      min: [0, 'El precio no puede ser negativo']
+      min: [0, "El impuesto no puede ser negativo"],
     },
-    name: {
-      type: String,
-      required: true
-    }
-  }],
-  shippingAddress: {
-    street: {
-      type: String,
-      required: [true, 'La dirección es requerida']
+    shippingPrice: {
+      type: Number,
+      required: true,
+      min: [0, "El costo de envío no puede ser negativo"],
     },
-    city: {
-      type: String,
-      required: [true, 'La ciudad es requerida']
+    totalPrice: {
+      type: Number,
+      required: true,
+      min: [0, "El precio total no puede ser negativo"],
     },
-    state: {
-      type: String,
-      required: [true, 'El estado es requerido']
+    isPaid: {
+      type: Boolean,
+      default: false,
     },
-    zipCode: {
+    paidAt: Date,
+    isDelivered: {
+      type: Boolean,
+      default: false,
+    },
+    deliveredAt: Date,
+    status: {
       type: String,
-      required: [true, 'El código postal es requerido']
-    }
+      required: true,
+      enum: ["pending", "processing", "completed", "cancelled"],
+      default: "pending",
+    },
+    notes: String,
   },
-  paymentMethod: {
-    type: String,
-    required: [true, 'El método de pago es requerido'],
-    enum: ['card', 'cash', 'pix']
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   },
-  paymentResult: {
-    id: String,
-    status: String,
-    updateTime: String,
-    email: String
-  },
-  itemsPrice: {
-    type: Number,
-    required: true,
-    min: [0, 'El precio de los items no puede ser negativo']
-  },
-  taxPrice: {
-    type: Number,
-    required: true,
-    min: [0, 'El impuesto no puede ser negativo']
-  },
-  shippingPrice: {
-    type: Number,
-    required: true,
-    min: [0, 'El costo de envío no puede ser negativo']
-  },
-  totalPrice: {
-    type: Number,
-    required: true,
-    min: [0, 'El precio total no puede ser negativo']
-  },
-  isPaid: {
-    type: Boolean,
-    default: false
-  },
-  paidAt: Date,
-  isDelivered: {
-    type: Boolean,
-    default: false
-  },
-  deliveredAt: Date,
-  status: {
-    type: String,
-    required: true,
-    enum: ['pending', 'processing', 'completed', 'cancelled'],
-    default: 'pending'
-  },
-  notes: String
-}, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
-});
+);
 
 // Middleware para actualizar stock después de crear una orden
-orderSchema.post('save', async function(doc) {
-  const Product = mongoose.model('Product');
-  
+orderSchema.post("save", async function (doc) {
+  const Product = mongoose.model("Product");
+
   for (const item of doc.items) {
     await Product.findByIdAndUpdate(item.product, {
-      $inc: { stock: -item.quantity }
+      $inc: { stock: -item.quantity },
     });
   }
 });
@@ -151,4 +156,4 @@ orderSchema.index({ status: 1 });
 orderSchema.index({ isPaid: 1 });
 orderSchema.index({ isDelivered: 1 });
 
-export const Order = mongoose.model<IOrder>('Order', orderSchema);
+export const Order = mongoose.model<IOrder>("Order", orderSchema);

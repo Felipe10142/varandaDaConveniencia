@@ -1,9 +1,10 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/varandaDaConveniencia';
+const MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://localhost:27017/varanda";
 
 export const connectDatabase = async () => {
   try {
@@ -16,20 +17,20 @@ export const connectDatabase = async () => {
 };
 
 // Eventos de conexión
-mongoose.connection.on('connected', () => {
-  console.log('Mongoose connected to db');
+mongoose.connection.on("connected", () => {
+  console.log("Mongoose connected to db");
 });
 
-mongoose.connection.on('error', (err) => {
-  console.error('Mongoose connection error:', err);
+mongoose.connection.on("error", (err) => {
+  console.error("Mongoose connection error:", err);
 });
 
-mongoose.connection.on('disconnected', () => {
-  console.log('Mongoose disconnected');
+mongoose.connection.on("disconnected", () => {
+  console.log("Mongoose disconnected");
 });
 
 // Manejo de señales de cierre
-process.on('SIGINT', async () => {
+process.on("SIGINT", async () => {
   await mongoose.connection.close();
   process.exit(0);
 });

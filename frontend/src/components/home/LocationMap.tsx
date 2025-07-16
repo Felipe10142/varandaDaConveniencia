@@ -1,12 +1,12 @@
-import React, { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import { MapPinIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
-import FadeContent from '../animations/FadeContent';
-import AnimatedContent from '../animations/AnimatedContent';
-import TrueFocus from '../animations/TrueFocus';
-import Ribbons from '../animations/Ribbons';
+import React, { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { MapPinIcon } from "lucide-react";
+import { motion } from "framer-motion";
+import FadeContent from "../animations/FadeContent";
+import AnimatedContent from "../animations/AnimatedContent";
+import TrueFocus from "../animations/TrueFocus";
+import Ribbons from "../animations/Ribbons";
 const LocationMap: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -15,15 +15,21 @@ const LocationMap: React.FC = () => {
       // Fix for Leaflet icon issue
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-        iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png'
+        iconRetinaUrl:
+          "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+        shadowUrl:
+          "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
       });
       // Initialize map
-      mapRef.current = L.map(mapContainerRef.current).setView([-27.89578292116541, -48.59583685279781], 17);
+      mapRef.current = L.map(mapContainerRef.current).setView(
+        [-27.89578292116541, -48.59583685279781],
+        17,
+      );
       // Add tile layer
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(mapRef.current);
       // Custom marker icon
       const customIcon = L.divIcon({
@@ -33,14 +39,19 @@ const LocationMap: React.FC = () => {
                   <circle cx="12" cy="10" r="3"></circle>
                 </svg>
               </div>`,
-        className: '',
+        className: "",
         iconSize: [40, 40],
-        iconAnchor: [20, 40]
+        iconAnchor: [20, 40],
       });
       // Add marker
       L.marker([-27.89578292116541, -48.59583685279781], {
-        icon: customIcon
-      }).addTo(mapRef.current).bindPopup('<b>Varanda da Conveniência</b><br>R. Aderbal Ramos da Silva, 1302').openPopup();
+        icon: customIcon,
+      })
+        .addTo(mapRef.current)
+        .bindPopup(
+          "<b>Varanda da Conveniência</b><br>R. Aderbal Ramos da Silva, 1302",
+        )
+        .openPopup();
     }
     return () => {
       if (mapRef.current) {
@@ -49,24 +60,48 @@ const LocationMap: React.FC = () => {
       }
     };
   }, []);
-  return <section id="localizacao" className="py-20 bg-gray-50 relative overflow-hidden">
+  return (
+    <section
+      id="localizacao"
+      className="py-20 bg-gray-50 relative overflow-hidden"
+    >
       <div className="absolute inset-0 z-0 opacity-10">
-        <Ribbons baseThickness={30} colors={['#D62828', '#F77F00', '#F4A261']} speedMultiplier={0.5} maxAge={500} enableFade={false} enableShaderEffect={true} />
+        <Ribbons
+          baseThickness={30}
+          colors={["#D62828", "#F77F00", "#F4A261"]}
+          speedMultiplier={0.5}
+          maxAge={500}
+          enableFade={false}
+          enableShaderEffect={true}
+        />
       </div>
       <div className="container mx-auto px-4 relative z-10">
-        <motion.div className="text-center mb-16" initial={{
-        opacity: 0,
-        y: 50
-      }} whileInView={{
-        opacity: 1,
-        y: 0
-      }} viewport={{
-        once: true
-      }} transition={{
-        duration: 0.8
-      }}>
+        <motion.div
+          className="text-center mb-16"
+          initial={{
+            opacity: 0,
+            y: 50,
+          }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+          }}
+          viewport={{
+            once: true,
+          }}
+          transition={{
+            duration: 0.8,
+          }}
+        >
           <div className="flex justify-center mb-4">
-            <TrueFocus sentence="Nossa Localização" manualMode={true} blurAmount={3} borderColor="#D62828" glowColor="rgba(214, 40, 40, 0.6)" animationDuration={0.5} />
+            <TrueFocus
+              sentence="Nossa Localização"
+              manualMode={true}
+              blurAmount={3}
+              borderColor="#D62828"
+              glowColor="rgba(214, 40, 40, 0.6)"
+              animationDuration={0.5}
+            />
           </div>
           <div className="w-20 h-1 bg-primary mx-auto mb-8"></div>
           <p className="text-gray text-lg max-w-2xl mx-auto">
@@ -121,6 +156,7 @@ const LocationMap: React.FC = () => {
           </div>
         </FadeContent>
       </div>
-    </section>;
+    </section>
+  );
 };
 export default LocationMap;

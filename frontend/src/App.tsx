@@ -1,21 +1,26 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { CartProvider } from './contexts/CartContext';
-import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
-import HomePage from './pages/Home';
-import LoginPage from './pages/Login';
-import RegisterPage from './pages/Register';
-import AdminPage from './pages/Admin';
-import PrivateRoute from './components/auth/PrivateRoute';
-import './assets/css/fonts.css';
-import CursorEffects from './components/CursorEffects';
-import { useAuth } from './contexts/AuthContext';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { CartProvider } from "./contexts/CartContext";
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
+import HomePage from "./pages/Home";
+import LoginPage from "./pages/Login";
+import RegisterPage from "./pages/Register";
+import AdminPage from "./pages/Admin";
+import PrivateRoute from "./components/auth/PrivateRoute";
+import "./assets/css/fonts.css";
+import CursorEffects from "./components/CursorEffects";
+import { useAuth } from "./contexts/AuthContext";
 
 export function App() {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Carregando...
+      </div>
+    );
   return (
     <Router>
       <div className="flex flex-col min-h-screen bg-white">
@@ -32,7 +37,14 @@ export function App() {
             ) : (
               <>
                 <Route path="/" element={<HomePage />} />
-                <Route path="/admin/*" element={<PrivateRoute adminOnly={true}><AdminPage /></PrivateRoute>} />
+                <Route
+                  path="/admin/*"
+                  element={
+                    <PrivateRoute adminOnly={true}>
+                      <AdminPage />
+                    </PrivateRoute>
+                  }
+                />
                 <Route path="*" element={<HomePage />} />
               </>
             )}

@@ -1,32 +1,42 @@
-import React, { useEffect } from 'react';
-import { motion, useAnimation, useMotionValue, MotionValue, Transition } from 'framer-motion';
+import React, { useEffect } from "react";
+import {
+  motion,
+  useAnimation,
+  useMotionValue,
+  MotionValue,
+  Transition,
+} from "framer-motion";
 interface CircularTextProps {
   text: string;
   spinDuration?: number;
-  onHover?: 'slowDown' | 'speedUp' | 'pause' | 'goBonkers';
+  onHover?: "slowDown" | "speedUp" | "pause" | "goBonkers";
   className?: string;
 }
-const getRotationTransition = (duration: number, from: number, loop: boolean = true) => ({
+const getRotationTransition = (
+  duration: number,
+  from: number,
+  loop = true,
+) => ({
   from,
   to: from + 360,
-  ease: 'linear' as const,
+  ease: "linear" as const,
   duration,
-  type: 'tween' as const,
-  repeat: loop ? Infinity : 0
+  type: "tween" as const,
+  repeat: loop ? Infinity : 0,
 });
 const getTransition = (duration: number, from: number) => ({
   rotate: getRotationTransition(duration, from),
   scale: {
-    type: 'spring' as const,
+    type: "spring" as const,
     damping: 20,
-    stiffness: 300
-  }
+    stiffness: 300,
+  },
 });
 const CircularText: React.FC<CircularTextProps> = ({
   text,
   spinDuration = 20,
-  onHover = 'speedUp',
-  className = ''
+  onHover = "speedUp",
+  className = "",
 }) => {
   const letters = Array.from(text);
   const controls = useAnimation();
@@ -36,7 +46,7 @@ const CircularText: React.FC<CircularTextProps> = ({
     controls.start({
       rotate: start + 360,
       scale: 1,
-      transition: getTransition(spinDuration, start)
+      transition: getTransition(spinDuration, start),
     });
   }, [spinDuration, text, onHover, controls]);
   const handleHoverStart = () => {
@@ -45,27 +55,27 @@ const CircularText: React.FC<CircularTextProps> = ({
     let transitionConfig: ReturnType<typeof getTransition> | Transition;
     let scaleVal = 1;
     switch (onHover) {
-      case 'slowDown':
+      case "slowDown":
         transitionConfig = getTransition(spinDuration * 2, start);
         break;
-      case 'speedUp':
+      case "speedUp":
         transitionConfig = getTransition(spinDuration / 4, start);
         break;
-      case 'pause':
+      case "pause":
         transitionConfig = {
           rotate: {
-            type: 'spring',
+            type: "spring",
             damping: 20,
-            stiffness: 300
+            stiffness: 300,
           },
           scale: {
-            type: 'spring',
+            type: "spring",
             damping: 20,
-            stiffness: 300
-          }
+            stiffness: 300,
+          },
         };
         break;
-      case 'goBonkers':
+      case "goBonkers":
         transitionConfig = getTransition(spinDuration / 20, start);
         scaleVal = 0.8;
         break;
@@ -75,7 +85,7 @@ const CircularText: React.FC<CircularTextProps> = ({
     controls.start({
       rotate: start + 360,
       scale: scaleVal,
-      transition: transitionConfig
+      transition: transitionConfig,
     });
   };
   const handleHoverEnd = () => {
@@ -83,27 +93,42 @@ const CircularText: React.FC<CircularTextProps> = ({
     controls.start({
       rotate: start + 360,
       scale: 1,
-      transition: getTransition(spinDuration, start)
+      transition: getTransition(spinDuration, start),
     });
   };
-  return <motion.div className={`m-0 mx-auto rounded-full w-[200px] h-[200px] relative font-black text-white text-center cursor-pointer origin-center ${className}`} style={{
-    rotate: rotation
-  }} initial={{
-    rotate: 0
-  }} animate={controls} onMouseEnter={handleHoverStart} onMouseLeave={handleHoverEnd}>
+  return (
+    <motion.div
+      className={`m-0 mx-auto rounded-full w-[200px] h-[200px] relative font-black text-white text-center cursor-pointer origin-center ${className}`}
+      style={{
+        rotate: rotation,
+      }}
+      initial={{
+        rotate: 0,
+      }}
+      animate={controls}
+      onMouseEnter={handleHoverStart}
+      onMouseLeave={handleHoverEnd}
+    >
       {letters.map((letter, i) => {
-      const rotationDeg = 360 / letters.length * i;
-      const factor = Math.PI / letters.length;
-      const x = factor * i;
-      const y = factor * i;
-      const transform = `rotateZ(${rotationDeg}deg) translate3d(${x}px, ${y}px, 0)`;
-      return <span key={i} className="absolute inline-block inset-0 text-2xl transition-all duration-500 ease-[cubic-bezier(0,0,0,1)]" style={{
-        transform,
-        WebkitTransform: transform
-      }}>
+        const rotationDeg = (360 / letters.length) * i;
+        const factor = Math.PI / letters.length;
+        const x = factor * i;
+        const y = factor * i;
+        const transform = `rotateZ(${rotationDeg}deg) translate3d(${x}px, ${y}px, 0)`;
+        return (
+          <span
+            key={i}
+            className="absolute inline-block inset-0 text-2xl transition-all duration-500 ease-[cubic-bezier(0,0,0,1)]"
+            style={{
+              transform,
+              WebkitTransform: transform,
+            }}
+          >
             {letter}
-          </span>;
-    })}
-    </motion.div>;
+          </span>
+        );
+      })}
+    </motion.div>
+  );
 };
 export default CircularText;

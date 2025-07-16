@@ -1,9 +1,9 @@
 // @ts-ignore
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 // @ts-ignore
-import pug from 'pug';
+import pug from "pug";
 // @ts-ignore
-import { htmlToText } from 'html-to-text';
+import { htmlToText } from "html-to-text";
 
 export class Email {
   to: string;
@@ -13,31 +13,31 @@ export class Email {
 
   constructor(user: { email: string; name: string }, url: string) {
     this.to = user.email;
-    this.firstName = user.name.split(' ')[0];
+    this.firstName = user.name.split(" ")[0];
     this.url = url;
     this.from = `Varanda da Conveniência <${process.env.EMAIL_FROM}>`;
   }
 
   newTransport() {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       // Configuración para servicio de email en producción (ejemplo: SendGrid)
       return nodemailer.createTransport({
-        service: 'SendGrid',
+        service: "SendGrid",
         auth: {
           user: process.env.SENDGRID_USERNAME,
-          pass: process.env.SENDGRID_PASSWORD
-        }
+          pass: process.env.SENDGRID_PASSWORD,
+        },
       });
     }
 
     // Configuración para desarrollo usando Mailtrap
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
-      port: parseInt(process.env.EMAIL_PORT || '587'),
+      port: parseInt(process.env.EMAIL_PORT || "587"),
       auth: {
         user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD
-      }
+        pass: process.env.EMAIL_PASSWORD,
+      },
     });
   }
 
@@ -47,7 +47,7 @@ export class Email {
       firstName: this.firstName,
       url: this.url,
       subject,
-      ...data
+      ...data,
     });
 
     // 2) Definir opciones de email
@@ -56,7 +56,7 @@ export class Email {
       to: this.to,
       subject,
       html,
-      text: htmlToText(html)
+      text: htmlToText(html),
     };
 
     // 3) Crear transport y enviar email
@@ -64,33 +64,33 @@ export class Email {
   }
 
   async sendWelcome() {
-    await this.send('welcome', '¡Bienvenido a Varanda da Conveniência!');
+    await this.send("welcome", "¡Bienvenido a Varanda da Conveniência!");
   }
 
   async sendPasswordReset() {
     await this.send(
-      'passwordReset',
-      'Su token de restablecimiento de contraseña (válido por 10 minutos)'
+      "passwordReset",
+      "Su token de restablecimiento de contraseña (válido por 10 minutos)",
     );
   }
 
   async sendOrderConfirmation(order: any) {
-    await this.send('orderConfirmation', 'Confirmación de su pedido', {
+    await this.send("orderConfirmation", "Confirmación de su pedido", {
       order,
-      orderNumber: order._id
+      orderNumber: order._id,
     });
   }
 
   async sendOrderStatusUpdate(order: any) {
-    await this.send('orderStatus', `Actualización de su pedido #${order._id}`, {
+    await this.send("orderStatus", `Actualización de su pedido #${order._id}`, {
       order,
-      status: order.status
+      status: order.status,
     });
   }
 
   async sendNewsletter(newsletter: any) {
-    await this.send('newsletter', newsletter.subject, {
-      content: newsletter.content
+    await this.send("newsletter", newsletter.subject, {
+      content: newsletter.content,
     });
   }
 }
