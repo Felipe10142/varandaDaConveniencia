@@ -20,8 +20,11 @@ import { protect, restrictTo } from "../middleware/authMiddleware";
 const router = express.Router();
 
 // Rutas públicas
-router.post("/register", uploadAvatar, registerUser);
-router.post("/login", loginUser);
+import { validate } from "../middleware/validationMiddleware";
+import { registerSchema, loginSchema } from "../validations/userValidation";
+
+router.post("/register", uploadAvatar, validate(registerSchema), registerUser);
+router.post("/login", validate(loginSchema), loginUser);
 router.post("/logout", logoutUser);
 router.post("/forgotpassword", forgotPassword);
 router.put("/resetpassword/:token", resetPassword);

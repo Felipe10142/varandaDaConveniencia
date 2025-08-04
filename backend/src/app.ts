@@ -31,8 +31,7 @@ const io = new Server(httpServer, {
   cors: corsOptions,
 });
 
-// Connect to database
-connectDatabase();
+
 
 // Body parser
 app.use(express.json());
@@ -91,8 +90,4 @@ io.on("connection", (socket) => {
 // Error handling
 app.use(errorHandler);
 
-// Start server
-const PORT = config.port;
-httpServer.listen(PORT, () => {
-  console.log(`Server running in ${config.env} mode on port ${PORT}`);
-});
+export { httpServer };

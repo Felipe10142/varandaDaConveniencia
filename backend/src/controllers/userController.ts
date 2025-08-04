@@ -17,9 +17,7 @@ export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
     const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
-      throw new AppError("Todos os campos são obrigatórios", 400);
-    }
+    
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -61,9 +59,7 @@ export const registerUser = asyncHandler(
 export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  if (!email || !password) {
-    throw new AppError("Email e senha são obrigatórios", 400);
-  }
+  
 
   const user = await User.findOne({ email }).select("+password");
   if (!user || !(await user.comparePassword(password))) {

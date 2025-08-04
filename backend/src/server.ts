@@ -1,4 +1,4 @@
-import { app } from "./app";
+import { httpServer } from "./app";
 import { config } from "./config/config";
 import { connectDatabase } from "./config/database";
 
@@ -9,7 +9,7 @@ const startServer = async () => {
 
     // Start server
     const PORT = config.port;
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(
         `⚡️[server]: Server is running in ${config.env} mode on port ${PORT}`,
       );
