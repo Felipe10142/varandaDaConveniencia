@@ -22,7 +22,7 @@ export const verifyToken = (token: string): { id: string } => {
 // Generar token de refresh
 export const generateRefreshToken = (userId: Types.ObjectId | string): string => {
   const id = typeof userId === "string" ? userId : userId.toString();
-  const secret = Buffer.from(process.env.JWT_REFRESH_SECRET || "superrefreshsecretkey");
+  const secret = process.env.JWT_REFRESH_SECRET || "superrefreshsecretkey";
   const options: SignOptions = { expiresIn: "30d" };
   return jwt.sign({ id }, secret, options);
 };
@@ -44,15 +44,16 @@ export const generateTempToken = (
   data: any,
   expiresIn: string = "1h",
 ): string => {
-  return jwt.sign(data, process.env.JWT_SECRET!, {
-    expiresIn,
-  });
+  const secret = process.env.JWT_SECRET || "your-secret-key";
+  const options: SignOptions = { expiresIn: expiresIn as any };
+  return jwt.sign(data, secret, options);
 };
 
 // Verificar token temporal
 export const verifyTempToken = (token: string): any => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    const secret = process.env.JWT_SECRET || "your-secret-key";
+    const decoded = jwt.verify(token, secret);
     return decoded;
   } catch (error) {
     throw new Error("Token temporário inválido ou expirado");

@@ -11,12 +11,12 @@ router.post("/image", protect, uploadSingle("image"), async (req, res) => {
       return res.status(400).json({ message: "Please upload a file" });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: req.file.path,
     });
   } catch (error: any) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -33,12 +33,12 @@ router.post("/images", protect, uploadArray("images", 5), async (req, res) => {
     const files = Array.isArray(req.files) ? req.files : [req.files];
     const paths = files.map((file) => file.path);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: paths,
     });
   } catch (error: any) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });

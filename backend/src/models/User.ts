@@ -16,6 +16,7 @@ export interface IUser extends Document {
   phoneNumber?: string;
   isEmailVerified: boolean;
   lastLogin?: Date;
+  refreshToken?: string;
   // Añadidos para verificación y recuperación
   emailVerificationToken?: string;
   emailVerificationExpires?: Date;
@@ -80,6 +81,10 @@ const userSchema = new Schema<IUser>(
     },
     lastLogin: {
       type: Date,
+    },
+    refreshToken: {
+      type: String,
+      select: false,
     },
     // Añadidos para verificación y recuperación
     emailVerificationToken: String,

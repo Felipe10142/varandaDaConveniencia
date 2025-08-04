@@ -337,8 +337,13 @@ export const uploadProductImages = asyncHandler(
 
     req.body.images = [];
 
+    // Verificar si req.files es un array o un objeto
+    const files = Array.isArray(req.files) 
+      ? req.files 
+      : Object.values(req.files).flat();
+
     await Promise.all(
-      req.files.map(async (file: Express.Multer.File, i: number) => {
+      files.map(async (file: Express.Multer.File, i: number) => {
         const filename = `product-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
 
         await sharp(file.buffer)

@@ -2,14 +2,13 @@ import { Request, Response, NextFunction } from "express";
 import asyncHandler from "express-async-handler";
 import { User } from "../models/User";
 import { Order } from "../models/Order";
-import { generateToken } from "../utils/generateToken";
+import { generateToken, generateRefreshToken, verifyRefreshToken } from "../utils/generateToken";
 import { Email } from "../utils/email";
 import AppError from "../utils/appError";
 import crypto from "crypto";
 import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary";
 import sharp from "sharp";
 import { AuthRequest } from "../middleware/authMiddleware";
-import { verifyRefreshToken, generateRefreshToken } from "../utils/generateToken";
 
 // @desc    Registrar um novo usuário
 // @route   POST /api/users/register
@@ -35,6 +34,11 @@ export const registerUser = asyncHandler(
     });
 
     const token = generateToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Salvar refresh token no usuário
+    user.refreshToken = refreshToken;
+    await user.save();
 
     res.status(201).json({
       status: "sucesso",
@@ -45,6 +49,7 @@ export const registerUser = asyncHandler(
         role: user.role,
         avatar: user.avatar,
         token,
+        refreshToken,
       },
     });
   },
@@ -66,6 +71,11 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const token = generateToken(user._id);
+  const refreshToken = generateRefreshToken(user._id);
+
+  // Salvar refresh token no usuário
+  user.refreshToken = refreshToken;
+  await user.save();
 
   res.status(200).json({
     status: "sucesso",
@@ -76,6 +86,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
       role: user.role,
       avatar: user.avatar,
       token,
+      refreshToken,
     },
   });
 });
@@ -83,13 +94,56 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 // @desc    Fechar sessão de usuário
 // @route   POST /api/users/logout
 // @access  Private
-export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
+export const logoutUser = asyncHandler(async (req: AuthRequest, res: Response) => {
+  // Limpar refresh token do usuário
+  if (req.user) {
+    req.user.refreshToken = undefined;
+    await req.user.save();
+  }
+
   res.cookie("jwt", "loggedout", {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
   });
 
   res.status(200).json({ status: "sucesso" });
+});
+
+// @desc    Atualizar token de acesso
+// @route   POST /api/users/refresh-token
+// @access  Public
+export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+  
+  if (!refreshToken) {
+    throw new AppError("Refresh token requerido", 400);
+  }
+
+  try {
+    const { id } = verifyRefreshToken(refreshToken);
+    const user = await User.findById(id);
+    
+    if (!user || user.refreshToken !== refreshToken) {
+      throw new AppError("Refresh token inválido", 401);
+    }
+
+    const newAccessToken = generateToken(user._id);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    // Atualizar refresh token no usuário
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    res.status(200).json({
+      status: "sucesso",
+      data: {
+        token: newAccessToken,
+        refreshToken: newRefreshToken,
+      },
+    });
+  } catch (err) {
+    throw new AppError("Refresh token inválido ou expirado", 401);
+  }
 });
 
 // @desc    Obter perfil de usuário
@@ -358,6 +412,11 @@ export const resetPassword = asyncHandler(
     await user.save();
 
     const token = generateToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    // Salvar refresh token no usuário
+    user.refreshToken = refreshToken;
+    await user.save();
 
     res.status(200).json({
       status: "sucesso",
@@ -367,6 +426,7 @@ export const resetPassword = asyncHandler(
         email: user.email,
         role: user.role,
         token,
+        refreshToken,
       },
     });
   },
@@ -399,30 +459,6 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
     status: "sucesso",
     message: "Email verificado com sucesso",
   });
-});
-
-// @desc    Atualizar token de acesso
-// @route   POST /api/users/refresh-token
-// @access  Public
-export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
-  const { refreshToken } = req.body;
-  if (!refreshToken) {
-    throw new AppError("Refresh token requerido", 400);
-  }
-  try {
-    const { id } = verifyRefreshToken(refreshToken);
-    const user = await User.findById(id);
-    if (!user) throw new AppError("Usuário não encontrado", 404);
-    const newAccessToken = generateToken(user._id);
-    const newRefreshToken = generateRefreshToken(user._id);
-    res.status(200).json({
-      status: "sucesso",
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
-    });
-  } catch (err) {
-    throw new AppError("Refresh token inválido ou expirado", 401);
-  }
 });
 
 // Middleware para processar avatar
