@@ -20,9 +20,7 @@ export const createOrder = asyncHandler(
   async (req: AuthRequest, res: Response) => {
     const { items, shippingAddress, paymentMethod } = req.body;
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      throw new AppError("O carrinho está vazio", 400);
-    }
+    
 
     let itemsPrice = 0;
     const orderItems = [];

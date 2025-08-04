@@ -12,8 +12,12 @@ router.use(protect);
 
 // Rutas para usuarios autenticados
 router.get("/user/:userId", reviewController.getUserReviews);
+import { validate } from "../middleware/validationMiddleware";
+import { createReviewSchema } from "../validations/reviewValidation";
+
 router.post(
   "/",
+  validate(createReviewSchema),
   reviewController.uploadReviewImages,
   reviewController.resizeReviewImages,
   reviewController.createReview,

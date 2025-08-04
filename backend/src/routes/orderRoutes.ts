@@ -1,5 +1,6 @@
 import express from "express";
-import { protect, restrictTo } from "../middleware/authMiddleware";
+import { validate } from "../middleware/validationMiddleware";
+import { createOrderSchema, createCheckoutSessionSchema } from "../validations/orderValidation";
 import {
   createOrder,
   getOrder,
@@ -20,7 +21,8 @@ router.use(protect);
 router.post("/", createOrder);
 router.get("/myorders", getMyOrders);
 router.get("/:id", getOrder);
-router.post("/create-checkout-session", createCheckoutSession);
+router.post("/", validate(createOrderSchema), createOrder);
+router.post("/create-checkout-session", validate(createCheckoutSessionSchema), createCheckoutSession);
 
 // Ruta para el webhook de Stripe (no necesita autenticación)
 router.post(

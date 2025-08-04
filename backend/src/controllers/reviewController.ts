@@ -1,9 +1,27 @@
 import { Request, Response } from "express";
 import asyncHandler from "express-async-handler";
 
+import { AuthRequest } from "../middleware/authMiddleware";
+import { Review } from "../models/Review";
+import AppError from "../utils/appError";
+
 export const createReview = asyncHandler(
-  async (req: Request, res: Response) => {
-    res.status(201).json({ message: "Review creada (dummy)" });
+  async (req: AuthRequest, res: Response) => {
+    const { rating, comment } = req.body;
+    const { productId } = req.params;
+    const userId = req.user?._id;
+
+    const review = await Review.create({
+      rating,
+      comment,
+      product: productId,
+      user: userId,
+    });
+
+    res.status(201).json({
+      status: "sucesso",
+      data: review,
+    });
   },
 );
 
