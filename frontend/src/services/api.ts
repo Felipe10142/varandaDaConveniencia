@@ -94,10 +94,9 @@ class ApiService {
     return this.request(`/orders/${id}`);
   }
 
-  async updateOrderStatus(id: string, status: string) {
-    return this.request(`/orders/${id}/status`, {
+  async updateOrderToDelivered(id: string) {
+    return this.request(`/orders/${id}/deliver`, {
       method: 'PUT',
-      body: JSON.stringify({ status }),
     });
   }
 
