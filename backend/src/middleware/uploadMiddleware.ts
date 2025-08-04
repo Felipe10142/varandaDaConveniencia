@@ -1,21 +1,9 @@
 import multer from "multer";
-import path from "path";
 import { Request } from "express";
 import AppError from "../utils/appError";
 
-// Multer configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../../uploads"));
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(
-      null,
-      file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname),
-    );
-  },
-});
+// Multer configuration with memory storage for Cloudinary
+const storage = multer.memoryStorage();
 
 // File filter
 const fileFilter = (
@@ -25,14 +13,14 @@ const fileFilter = (
 ) => {
   const allowedTypes = /jpeg|jpg|png|gif|webp/;
   const extname = allowedTypes.test(
-    path.extname(file.originalname).toLowerCase(),
+    file.originalname.toLowerCase(),
   );
   const mimetype = allowedTypes.test(file.mimetype);
 
   if (extname && mimetype) {
     cb(null, true);
   } else {
-    cb(new AppError("Only images are allowed!", 400));
+    cb(new AppError("Apenas imagens são permitidas!", 400));
   }
 };
 
@@ -41,7 +29,7 @@ export const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB
+    fileSize: 10 * 1024 * 1024, // 10MB
   },
 });
 
@@ -53,4 +41,9 @@ export const uploadArray = (fieldName: string, maxCount: number) => {
 // Single upload middleware
 export const uploadSingle = (fieldName: string) => {
   return upload.single(fieldName);
+};
+
+// Multiple fields upload middleware
+export const uploadFields = (fields: multer.Field[]) => {
+  return upload.fields(fields);
 };

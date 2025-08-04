@@ -1,5 +1,6 @@
 import express from "express";
 import { protect, restrictTo } from "../middleware/authMiddleware";
+import { uploadSingle, uploadArray } from "../middleware/uploadMiddleware";
 import {
   getAllProducts,
   getProduct,
@@ -11,6 +12,11 @@ import {
   searchProducts,
   getTopProducts,
   getRelatedProducts,
+  bulkCreateProducts,
+  bulkUpdateProducts,
+  getProductStats,
+  uploadProductImage,
+  deleteProductImage,
 } from "../controllers/productController";
 
 const router = express.Router();
@@ -27,8 +33,20 @@ router.get("/:id/related", getRelatedProducts);
 router.use(protect);
 router.use(restrictTo("admin"));
 
-router.post("/", uploadProductImages, createProduct);
-router.put("/:id", uploadProductImages, updateProduct);
+// CRUD básico
+router.post("/", uploadArray("images", 5), createProduct);
+router.put("/:id", uploadArray("images", 5), updateProduct);
 router.delete("/:id", deleteProduct);
+
+// Operaciones bulk
+router.post("/bulk", bulkCreateProducts);
+router.put("/bulk", bulkUpdateProducts);
+
+// Estadísticas
+router.get("/stats", getProductStats);
+
+// Upload de imágenes individuales
+router.post("/upload-image", uploadSingle("image"), uploadProductImage);
+router.delete("/delete-image", deleteProductImage);
 
 export default router;

@@ -37,11 +37,16 @@ export const getAllProducts = asyncHandler(
       query.isAvailable = req.query.isAvailable === "true";
     }
 
+    if (req.query.stock) {
+      query.stock = { $gt: 0 };
+    }
+
     // Búsqueda por texto
     if (req.query.search) {
       query.$or = [
         { name: { $regex: req.query.search, $options: "i" } },
         { description: { $regex: req.query.search, $options: "i" } },
+        { tags: { $in: [new RegExp(req.query.search as string, "i")] } },
       ];
     }
 
@@ -106,7 +111,10 @@ export const createProduct = asyncHandler(
     let files: Express.Multer.File[] = [];
     if (req.files && Array.isArray(req.files)) {
       files = req.files as Express.Multer.File[];
+    } else if (req.files && !Array.isArray(req.files)) {
+      files = Object.values(req.files).flat();
     }
+
     const uploadPromises =
       files.length > 0
         ? files.map(async (file) => {
@@ -117,7 +125,7 @@ export const createProduct = asyncHandler(
               .toBuffer();
 
             // Subir a Cloudinary
-            const result = await uploadToCloudinary(optimizedBuffer);
+            const result = await uploadToCloudinary(optimizedBuffer, "products");
             return result.secure_url;
           })
         : [];
@@ -148,7 +156,10 @@ export const updateProduct = asyncHandler(
     let files: Express.Multer.File[] = [];
     if (req.files && Array.isArray(req.files)) {
       files = req.files as Express.Multer.File[];
+    } else if (req.files && !Array.isArray(req.files)) {
+      files = Object.values(req.files).flat();
     }
+
     const uploadPromises =
       files.length > 0
         ? files.map(async (file) => {
@@ -157,27 +168,31 @@ export const updateProduct = asyncHandler(
               .jpeg({ quality: 85 })
               .toBuffer();
 
-            const result = await uploadToCloudinary(optimizedBuffer);
+            const result = await uploadToCloudinary(optimizedBuffer, "products");
             return result.secure_url;
           })
         : [];
 
     const newImages = await Promise.all(uploadPromises);
-    req.body.images = [...product.images, ...newImages];
+    const updatedImages = [...product.images, ...newImages];
 
     // Eliminar imágenes antiguas si se especifica
     if (req.body.imagesToDelete && Array.isArray(req.body.imagesToDelete)) {
       for (const imageUrl of req.body.imagesToDelete) {
         if (product.images.includes(imageUrl)) {
-          await deleteFromCloudinary(imageUrl);
-          product.images = product.images.filter((img) => img !== imageUrl);
+          // Extraer public_id de la URL de Cloudinary
+          const publicId = imageUrl.split('/').pop()?.split('.')[0];
+          if (publicId) {
+            await deleteFromCloudinary(publicId);
+          }
+          updatedImages.splice(updatedImages.indexOf(imageUrl), 1);
         }
       }
     }
 
     const updatedProduct = await Product.findByIdAndUpdate(
       req.params.id,
-      { ...req.body, images: product.images },
+      { ...req.body, images: updatedImages },
       { new: true, runValidators: true },
     );
 
@@ -201,7 +216,10 @@ export const deleteProduct = asyncHandler(
 
     // Eliminar imágenes de Cloudinary
     for (const imageUrl of product.images) {
-      await deleteFromCloudinary(imageUrl);
+      const publicId = imageUrl.split('/').pop()?.split('.')[0];
+      if (publicId) {
+        await deleteFromCloudinary(publicId);
+      }
     }
 
     await Product.findByIdAndDelete(product._id);
@@ -209,6 +227,53 @@ export const deleteProduct = asyncHandler(
     res.status(204).json({
       status: "sucesso",
       data: null,
+    });
+  },
+);
+
+// @desc    Bulk create products
+// @route   POST /api/products/bulk
+// @access  Private/Admin
+export const bulkCreateProducts = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { products } = req.body;
+
+    if (!Array.isArray(products) || products.length === 0) {
+      throw new AppError("Lista de produtos é obrigatória", 400);
+    }
+
+    const createdProducts = await Product.insertMany(products);
+
+    res.status(201).json({
+      status: "sucesso",
+      results: createdProducts.length,
+      data: createdProducts,
+    });
+  },
+);
+
+// @desc    Bulk update products
+// @route   PUT /api/products/bulk
+// @access  Private/Admin
+export const bulkUpdateProducts = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { updates } = req.body;
+
+    if (!Array.isArray(updates) || updates.length === 0) {
+      throw new AppError("Lista de atualizações é obrigatória", 400);
+    }
+
+    const updatePromises = updates.map(async (update) => {
+      const { id, ...updateData } = update;
+      return Product.findByIdAndUpdate(id, updateData, { new: true });
+    });
+
+    const updatedProducts = await Promise.all(updatePromises);
+
+    res.status(200).json({
+      status: "sucesso",
+      results: updatedProducts.length,
+      data: updatedProducts,
     });
   },
 );
@@ -327,6 +392,112 @@ export const getRelatedProducts = asyncHandler(
       results: relatedProducts.length,
       data: relatedProducts,
     });
+  },
+);
+
+// @desc    Obter estatísticas de produtos
+// @route   GET /api/products/stats
+// @access  Private/Admin
+export const getProductStats = asyncHandler(
+  async (req: Request, res: Response) => {
+    const stats = await Product.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalProducts: { $sum: 1 },
+          totalValue: { $sum: "$price" },
+          avgPrice: { $avg: "$price" },
+          avgRating: { $avg: "$rating" },
+          totalStock: { $sum: "$stock" },
+          availableProducts: {
+            $sum: { $cond: ["$isAvailable", 1, 0] },
+          },
+        },
+      },
+    ]);
+
+    const categoryStats = await Product.aggregate([
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 },
+          avgPrice: { $avg: "$price" },
+          totalStock: { $sum: "$stock" },
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+
+    res.status(200).json({
+      status: "sucesso",
+      data: {
+        general: stats[0] || {
+          totalProducts: 0,
+          totalValue: 0,
+          avgPrice: 0,
+          avgRating: 0,
+          totalStock: 0,
+          availableProducts: 0,
+        },
+        byCategory: categoryStats,
+      },
+    });
+  },
+);
+
+// @desc    Upload de imagem única
+// @route   POST /api/products/upload-image
+// @access  Private/Admin
+export const uploadProductImage = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.file) {
+      throw new AppError("Por favor, envie uma imagem", 400);
+    }
+
+    try {
+      // Optimizar imagen
+      const optimizedBuffer = await sharp(req.file.buffer)
+        .resize(800, 800, { fit: "inside", withoutEnlargement: true })
+        .jpeg({ quality: 85 })
+        .toBuffer();
+
+      // Subir a Cloudinary
+      const result = await uploadToCloudinary(optimizedBuffer, "products");
+
+      res.status(200).json({
+        status: "sucesso",
+        data: {
+          url: result.secure_url,
+          public_id: result.public_id,
+        },
+      });
+    } catch (error: any) {
+      throw new AppError(`Erro ao fazer upload: ${error.message}`, 500);
+    }
+  },
+);
+
+// @desc    Eliminar imagem de produto
+// @route   DELETE /api/products/delete-image
+// @access  Private/Admin
+export const deleteProductImage = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { publicId } = req.body;
+
+    if (!publicId) {
+      throw new AppError("Public ID é obrigatório", 400);
+    }
+
+    try {
+      await deleteFromCloudinary(publicId);
+
+      res.status(200).json({
+        status: "sucesso",
+        message: "Imagem eliminada com sucesso",
+      });
+    } catch (error: any) {
+      throw new AppError(`Erro ao eliminar imagem: ${error.message}`, 500);
+    }
   },
 );
 
