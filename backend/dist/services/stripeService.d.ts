@@ -1,0 +1,13 @@
+import Stripe from "stripe";
+declare const stripeClient: Stripe;
+export declare const createPaymentIntent: (amount: number, currency?: string) => Promise<Stripe.Response<Stripe.PaymentIntent>>;
+export declare const retrievePaymentIntent: (paymentIntentId: string) => Promise<Stripe.Response<Stripe.PaymentIntent>>;
+export declare const createCustomer: (email: string, source?: string) => Promise<Stripe.Response<Stripe.Customer>>;
+export declare const createRefund: (paymentIntentId: string, amount?: number) => Promise<Stripe.Response<Stripe.Refund>>;
+export declare const createSubscription: (customerId: string, priceId: string, options?: Omit<Stripe.SubscriptionCreateParams, "customer" | "items">) => Promise<Stripe.Response<Stripe.Subscription>>;
+export declare const cancelSubscription: (subscriptionId: string) => Promise<Stripe.Response<Stripe.Subscription>>;
+export declare const createProduct: (name: string, options?: Omit<Stripe.ProductCreateParams, "name">) => Promise<Stripe.Response<Stripe.Product>>;
+export declare const createPrice: (productId: string, unitAmount: number, currency?: string, options?: Omit<Stripe.PriceCreateParams, "product" | "unit_amount" | "currency">) => Promise<Stripe.Response<Stripe.Price>>;
+export declare const createCheckoutSession: (lineItems: Array<Stripe.Checkout.SessionCreateParams.LineItem>, options?: Partial<Omit<Stripe.Checkout.SessionCreateParams, "line_items">>) => Promise<Stripe.Response<Stripe.Checkout.Session>>;
+export declare const createWebhookEvent: (payload: string | Buffer, signature: string, webhookSecret: string) => Stripe.Event;
+export default stripeClient;
