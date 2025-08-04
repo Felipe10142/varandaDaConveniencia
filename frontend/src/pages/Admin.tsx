@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import OrdersList from '../components/admin/OrdersList';
-import ProductForm from '../components/admin/ProductForm';
+import ProductList from '../components/admin/ProductList';
 
 const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'orders' | 'products'>('orders');
@@ -34,13 +34,7 @@ const Admin: React.FC = () => {
 
       <div className="mt-8">
         {activeTab === 'orders' && <OrdersList />}
-        {activeTab === 'products' && (
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Gerenciar Produtos</h2>
-            {/* El componente para gestionar productos irá aquí */}
-            <ProductForm />
-          </div>
-        )}
+        {activeTab === 'products' && <ProductList />}
       </div>
     </div>
   );
