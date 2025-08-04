@@ -1,4 +1,5 @@
-import React from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import apiService from "../../services/api";
 import {
   XIcon,
   PlusIcon,
@@ -20,6 +21,57 @@ const CartModal: React.FC = () => {
     totalPrice,
     clearCart,
   } = useCart();
+  const { isAuthenticated, user } = useAuth();
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const handleCheckout = async () => {
+    if (!isAuthenticated) {
+      // Idealmente, aquí se debería redirigir al login
+      // o mostrar un modal para iniciar sesión.
+      alert("Você precisa estar logado para finalizar o pedido.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // 1. Crear el pedido en el backend
+      const orderResponse = await apiService.createOrder({
+        items: items.map(item => ({
+          product: item.product._id,
+          quantity: item.quantity,
+        })),
+        shippingAddress: { // Dirección de ejemplo, esto debería venir del perfil del usuario
+          street: "Rua Principal, 123",
+          city: "Pinheira",
+          state: "SC",
+          zipCode: "88130-000",
+        },
+        paymentMethod: "card",
+      });
+
+      const orderId = orderResponse.data._id;
+
+      // 2. Crear la sesión de checkout de Stripe
+      const checkoutResponse = await apiService.createCheckoutSession({
+        orderItems: items.map(item => ({
+          product: item.product._id,
+          quantity: item.quantity,
+        })),
+        orderId: orderId,
+      });
+
+      // 3. Redirigir a la página de pago de Stripe
+      window.location.href = checkoutResponse.data.url;
+
+    } catch (error) {
+      console.error("Erro no checkout:", error);
+      alert("Ocorreu um erro ao processar seu pedido. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!isCartOpen) return null;
   const backdropVariants = {
     hidden: {
@@ -183,14 +235,14 @@ const CartModal: React.FC = () => {
                   <div className="space-y-4">
                     {items.map((item, index) => (
                       <motion.div
-                        key={item.product.id}
+                        key={item.product._id}
                         custom={index}
                         variants={cartItemVariants}
                         initial="hidden"
                         animate="visible"
                         exit="exit"
                         className="flex items-center bg-white/10 p-4 rounded-lg text-white backdrop-blur-sm"
-                        layoutId={`cart-item-${item.product.id}`}
+                        layoutId={`cart-item-${item.product._id}`}
                       >
                         <div className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden">
                           <motion.div
@@ -217,7 +269,7 @@ const CartModal: React.FC = () => {
                               <motion.button
                                 onClick={() =>
                                   updateQuantity(
-                                    item.product.id,
+                                    item.product._id,
                                     item.quantity - 1,
                                   )
                                 }
@@ -239,7 +291,7 @@ const CartModal: React.FC = () => {
                               <motion.button
                                 onClick={() =>
                                   updateQuantity(
-                                    item.product.id,
+                                    item.product._id,
                                     item.quantity + 1,
                                   )
                                 }
@@ -253,7 +305,7 @@ const CartModal: React.FC = () => {
                               </motion.button>
                             </div>
                             <motion.button
-                              onClick={() => removeFromCart(item.product.id)}
+                              onClick={() => removeFromCart(item.product._id)}
                               className="text-white/70 hover:text-white transition-colors"
                               whileHover={{
                                 scale: 1.1,
@@ -301,11 +353,13 @@ const CartModal: React.FC = () => {
                   </div>
                   <div className="space-y-3">
                     <motion.button
-                      className="w-full bg-white hover:bg-white/90 text-primary font-bold py-3 px-4 rounded-lg transition-colors"
+                      onClick={handleCheckout}
+                      disabled={isLoading}
+                      className="w-full bg-white hover:bg-white/90 text-primary font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       whileHover={btnHoverEffect}
                       whileTap={btnTapEffect}
                     >
-                      Finalizar Pedido
+                      {isLoading ? 'Processando...' : 'Finalizar Pedido'}
                     </motion.button>
                     <motion.button
                       onClick={clearCart}

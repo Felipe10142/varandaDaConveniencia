@@ -101,6 +101,13 @@ class ApiService {
     });
   }
 
+  async createCheckoutSession(orderData: any) {
+    return this.request('/orders/create-checkout-session', {
+        method: 'POST',
+        body: JSON.stringify(orderData),
+    });
+  }
+
   // Reviews endpoints
   async getReviews(productId?: string) {
     const endpoint = productId ? `/reviews?product=${productId}` : '/reviews';

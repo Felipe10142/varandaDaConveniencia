@@ -1,6 +1,6 @@
 import React, { useEffect, useState, createContext, useContext } from "react";
 export type Product = {
-  id: string;
+  _id: string;
   name: string;
   description: string;
   price: number;
@@ -47,11 +47,11 @@ export const CartProvider: React.FC<{
   const addToCart = (product: Product) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find(
-        (item) => item.product.id === product.id,
+        (item) => item.product._id === product._id,
       );
       if (existingItem) {
         return prevItems.map((item) =>
-          item.product.id === product.id
+          item.product._id === product._id
             ? {
                 ...item,
                 quantity: item.quantity + 1,
@@ -73,7 +73,7 @@ export const CartProvider: React.FC<{
   };
   const removeFromCart = (productId: string) => {
     setItems((prevItems) =>
-      prevItems.filter((item) => item.product.id !== productId),
+      prevItems.filter((item) => item.product._id !== productId),
     );
   };
   const updateQuantity = (productId: string, quantity: number) => {
@@ -83,7 +83,7 @@ export const CartProvider: React.FC<{
     }
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.product.id === productId
+        item.product._id === productId
           ? {
               ...item,
               quantity,
