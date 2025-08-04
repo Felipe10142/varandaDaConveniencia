@@ -1,6 +1,7 @@
 import express from "express";
 import { protect, restrictTo } from "../middleware/authMiddleware";
-import { uploadSingle, uploadArray } from "../middleware/uploadMiddleware";
+import { validate } from "../middleware/validationMiddleware";
+import { createProductSchema, updateProductSchema } from "../validations/productValidation";
 import {
   getAllProducts,
   getProduct,
@@ -34,8 +35,8 @@ router.use(protect);
 router.use(restrictTo("admin"));
 
 // CRUD básico
-router.post("/", uploadArray("images", 5), createProduct);
-router.put("/:id", uploadArray("images", 5), updateProduct);
+router.post("/", uploadArray("images", 5), validate(createProductSchema), createProduct);
+router.put("/:id", uploadArray("images", 5), validate(updateProductSchema), updateProduct);
 router.delete("/:id", deleteProduct);
 
 // Operaciones bulk

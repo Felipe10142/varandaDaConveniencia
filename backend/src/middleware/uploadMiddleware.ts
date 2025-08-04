@@ -16,7 +16,6 @@ const fileFilter = (
     file.originalname.toLowerCase(),
   );
   const mimetype = allowedTypes.test(file.mimetype);
-
   if (extname && mimetype) {
     cb(null, true);
   } else {
