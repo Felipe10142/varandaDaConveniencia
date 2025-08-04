@@ -21,13 +21,13 @@ const router = express.Router();
 
 // Rutas públicas
 import { validate } from "../middleware/validationMiddleware";
-import { registerSchema, loginSchema } from "../validations/userValidation";
+import { registerSchema, loginSchema, updateUserProfileSchema, forgotPasswordSchema, resetPasswordSchema } from "../validations/userValidation";
 
 router.post("/register", uploadAvatar, validate(registerSchema), registerUser);
 router.post("/login", validate(loginSchema), loginUser);
 router.post("/logout", logoutUser);
-router.post("/forgotpassword", forgotPassword);
-router.put("/resetpassword/:token", resetPassword);
+router.post("/forgotpassword", validate(forgotPasswordSchema), forgotPassword);
+router.put("/resetpassword/:token", validate(resetPasswordSchema), resetPassword);
 router.get("/verify/:token", verifyEmail);
 router.post("/refresh-token", refreshToken);
 
@@ -35,7 +35,7 @@ router.post("/refresh-token", refreshToken);
 router.use(protect);
 
 router.get("/profile", getUserProfile);
-router.put("/profile", uploadAvatar, updateUserProfile);
+router.put("/profile", uploadAvatar, validate(updateUserProfileSchema), updateUserProfile);
 
 // Rutas protegidas para administradores
 router.use(restrictTo("admin"));

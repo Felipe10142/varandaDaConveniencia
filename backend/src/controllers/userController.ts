@@ -203,20 +203,7 @@ export const updateUserProfile = asyncHandler(
     }
 
     // Atualizar campos
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-    if (req.body.password) {
-      user.password = req.body.password;
-    }
-    if (req.body.avatar) {
-      user.avatar = req.body.avatar;
-    }
-    if (req.body.address) {
-      user.address = req.body.address;
-    }
-    if (req.body.phoneNumber) {
-      user.phoneNumber = req.body.phoneNumber;
-    }
+    Object.assign(user, req.body);
 
     const updatedUser = await user.save();
 
