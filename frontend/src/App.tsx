@@ -27,26 +27,19 @@ export function App() {
           <Header />
           <main className="flex-grow">
             <Routes>
-              {!isAuthenticated ? (
-                <>
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
-                  <Route path="*" element={<LoginPage />} />
-                </>
-              ) : (
-                <>
-                  <Route path="/" element={<HomePage />} />
-                  <Route
-                    path="/admin/*"
-                    element={
-                      <PrivateRoute adminOnly={true}>
-                        <AdminPage />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route path="*" element={<HomePage />} />
-                </>
-              )}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route
+                path="/admin/*"
+                element={
+                  <PrivateRoute adminOnly={true}>
+                    <AdminPage />
+                  </PrivateRoute>
+                }
+              />
+              {/* Redireciona para a Home se nenhuma outra rota corresponder */}
+              <Route path="*" element={<HomePage />} />
             </Routes>
           </main>
           <Footer />
